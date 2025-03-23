@@ -66,6 +66,7 @@ Before using Sonora, ensure you have a Jellyfin server set up. You can configure
 - [TypeScript](https://www.typescriptlang.org/)
 - [Jellyfin API SDK](https://github.com/jellyfin/jellyfin-sdk-typescript)
 - [Tanstack Query](https://tanstack.com/query/latest)
+- [react-native-track-player](https://github.com/doublesymmetry/react-native-track-player)
 
 ## Contributing
 Contributions are welcome! Feel free to open issues and pull requests.
