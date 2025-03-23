@@ -140,7 +140,7 @@ const AlbumItem = ({ album }: { album: JellyfinItem }) => {
     `${serverUrl}/Items/${album.Id}/Images/Primary?fillHeight=300&fillWidth=300&quality=90` : null;
   
   const navigateToAlbum = () => {
-    router.push(`/(tabs)/album/${album.Id}`);
+    router.push(`/album/${album.Id}`);
   };
   
   return (
