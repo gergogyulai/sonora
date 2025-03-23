@@ -1,7 +1,7 @@
 # Sonora
 ![sonora-gh-reame-header-tiny](https://github.com/user-attachments/assets/202d6c40-9fe0-49f2-a643-b25340b87603)
 
-*A sleek, modern music streaming application built with Expo and React Native, powered by Jellyfin as the backend media server.*
+A sleek, modern music streaming application built with Expo and React Native, powered by Jellyfin.
 
 ## 🚀 About Sonora
 Sonora is a new project aimed at delivering a high-quality, aesthetically pleasing music streaming experience. The goal is to take inspiration from Apple Music’s design—keeping the good parts and reinventing the bad ones—to create a seamless and beautiful user interface. Built with React Native and Expo, Sonora will allow users to stream their personal music library from a Jellyfin server.
