@@ -1,50 +1,74 @@
-# Welcome to your Expo app 👋
+# Sonora
+![sonora-gh-reame-header-tiny](https://github.com/user-attachments/assets/202d6c40-9fe0-49f2-a643-b25340b87603)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+*A sleek, modern music streaming application built with Expo and React Native, powered by Jellyfin as the backend media server.*
 
-## Get started
+## 🚀 About Sonora
+Sonora is a new project aimed at delivering a high-quality, aesthetically pleasing music streaming experience. The goal is to take inspiration from Apple Music’s design—keeping the good parts and reinventing the bad ones—to create a seamless and beautiful user interface. Built with React Native and Expo, Sonora will allow users to stream their personal music library from a Jellyfin server.
 
-1. Install dependencies
+As this is an early-stage project, the codebase is subject to frequent changes and improvements.
 
-   ```bash
-   npm install
-   ```
+## Features (Planned & In Progress)
+- 🎵 Stream music from your Jellyfin server
+- 🎨 Elegant and modern UI inspired by Apple Music
+- 📱 Cross-platform support with React Native & Expo
+- 🔍 Smart search and dynamic filtering
+- 📂 Intuitive and organized music library
+- 🌙 Light & dark mode support
+- 📡 Offline playback (planned)
+- 📊 Playback analytics and recommendations (planned)
 
-2. Start the app
+## 🛠 Development
 
-   ```bash
-    npx expo start
-   ```
+### Prerequisites
+To set up the development environment, ensure you have the following installed:
+- **Bun** or **Node.js** with npm/yarn
+- **A Jellyfin server** set up and running
+- **Xcode** (for iOS development) or the appropriate **Android toolchain** (Android Studio, Java JDK, etc.)
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+### Clone the Repository
+```sh
+git clone https://github.com/gergogyulai/sonora.git
+cd sonora
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Install Dependencies
+```sh
+bun install
+# or
+npm install
+# or
+yarn install
+```
 
-## Learn more
+### Running the App
+Since Sonora uses native modules, **Expo Go will not work** for development. Instead, developers need to use a custom development client:
 
-To learn more about developing your project with Expo, look at the following resources:
+1. **Build the development client**
+   ```sh
+   expo prebuild
+   expo run:ios  # for iOS (requires macOS and Xcode)
+   expo run:android  # for Android
+   ```
+2. **Start the development server**
+   ```sh
+   expo start
+   ```
+3. **Run on a simulator/emulator or a physical device**
+   - For iOS, open the project in Xcode and run it on a simulator.
+   - For Android, use an emulator from Android Studio or connect a physical device via USB.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## ⚙️ Configuration
+Before using Sonora, ensure you have a Jellyfin server set up. You can configure your server details inside the app settings.
 
-## Join the community
+## 🛠 Technologies Used
+- React Native
+- Expo
+- TypeScript
+- Jellyfin API
 
-Join our community of developers creating universal apps.
+## Contributing
+Contributions are welcome! Feel free to open issues and pull requests.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## License
+MIT License. See `LICENSE` for details.
