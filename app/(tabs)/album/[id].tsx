@@ -13,15 +13,15 @@ import {
 import { useLocalSearchParams, Stack, useRouter, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "react-native";
-import { Colors } from "../../constants/Colors";
-import { useAuth } from "../../context/AuthContext";
-import { useAlbumById, useSongById, useSongs } from "../../lib/hooks/jellyfin";
-import { useMusicPlayer } from "../../context/MusicPlayerContext";
-import { SongItem } from "../../components/album-page/song-item";
+import { Colors } from "../../../constants/Colors";
+import { useAuth } from "../../../context/AuthContext";
+import { useAlbumById, useSongById, useSongs } from "../../../lib/hooks/jellyfin";
+import { useMusicPlayer } from "../../../context/MusicPlayerContext";
+import { SongItem } from "../../../components/album-page/song-item";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import * as ContextMenu from "zeego/context-menu";
 import { LinearGradient } from "expo-linear-gradient";
-import CoverHeader from "../../components/album-page/cover-header";
+import CoverHeader from "../../../components/album-page/cover-header";
 
 function OptionsMenu({ colors }: { colors: any }) {
   return (

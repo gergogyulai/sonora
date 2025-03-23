@@ -1,8 +1,8 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { getItemsApi } from '@jellyfin/sdk/lib/utils/api';
+import { getItemsApi, getUserApi, getSuggestionsApi, getAudioApi } from '@jellyfin/sdk/lib/utils/api';
 import { useJellyfinApi, ApiResponse, CACHE_PRESETS, createQueryOptions } from './core';
 
-export function useAlbums<T = unknown>(
+export function useRecentlyPlayed(
   options?: Omit<UseQueryOptions<ApiResponse<any>, Error, ApiResponse<any>>, 'queryKey' | 'queryFn'>
 ) {
   const jellyfinApi = useJellyfinApi();
@@ -12,22 +12,21 @@ export function useAlbums<T = unknown>(
     
     const { api, userId } = jellyfinApi;
     const itemsApi = getItemsApi(api);
+    const suggestionsApi = getSuggestionsApi(api);
     
-    return await itemsApi.getItems({
+    return await suggestionsApi.getSuggestions({
       userId,
-      recursive: true,
-      includeItemTypes: ['MusicAlbum'],
-      sortBy: ['SortName'],
-      sortOrder: ['Ascending'],
+      type: ["MusicAlbum"],
+      limit: 20,
     });
   };
 
   return useQuery<ApiResponse<any>, Error, ApiResponse<any>>(
     createQueryOptions(
-      ['albums'],
+      ['recentlyPlayed'],
       queryFn,
-      CACHE_PRESETS.ALBUMS,
+      CACHE_PRESETS.RECENT,
       { enabled: !!jellyfinApi, ...options }
     )
   );
-} 
+}

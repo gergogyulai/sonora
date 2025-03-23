@@ -20,6 +20,7 @@ import { useMusicPlayer } from '../../context/MusicPlayerContext';
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from 'react-native';
 import { songs, albums, playlists } from '../../models/MusicData';
+import { useRecentlyPlayed } from '@/lib/hooks/jellyfin';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -28,7 +29,8 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { currentSong, setCurrentPlaylist } = useMusicPlayer();
-
+  const { data: recentlyPlayed, isLoading: recentlyPlayedLoading, isError: recentlyPlayedError } = useRecentlyPlayed();
+  console.log(JSON.stringify(recentlyPlayed?.data, null, 2));
   const openPlayer = () => {
     setIsPlayerVisible(true);
   };
@@ -75,31 +77,31 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
           >
-            {playlists.map((playlist) => (
+            {/* {recentlyPlayed?.data?.items.map((item: any) => (
               <TouchableOpacity 
-                key={playlist.id} 
+                key={item.id} 
                 style={styles.playlist}
                 activeOpacity={0.7}
-                onPress={() => setCurrentPlaylist(playlist.songs)}
+                onPress={() => setCurrentPlaylist(item.songs)}
               >
                 <Image 
-                  source={{ uri: playlist.imageUri }} 
+                  source={{ uri: item.imageUri }} 
                   style={styles.playlistImage}
                 />
                 <Text 
                   style={[styles.playlistName, { color: colors.text }]} 
                   numberOfLines={1}
                 >
-                  {playlist.name}
+                  {item.name}
                 </Text>
                 <Text 
                   style={[styles.playlistDescription, { color: colors.icon }]} 
                   numberOfLines={1}
                 >
-                  {playlist.description}
+                  {item.description}
                 </Text>
               </TouchableOpacity>
-            ))}
+            ))} */}
           </ScrollView>
         </View>
 

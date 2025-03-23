@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, SafeAreaView, TouchableOpacity, Modal, Image, Animated, TextInput } from 'react-native';
+import { StyleSheet, View, Text, FlatList, SafeAreaView, TouchableOpacity, Modal, Image, Animated, TextInput, RefreshControl } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { LibraryTabs } from '../../components/LibraryTabs';
 import { SongItem } from '../../components/SongItem';
@@ -11,11 +11,92 @@ import { Ionicons } from '@expo/vector-icons';
 import { MusicPlayer } from '../../components/MusicPlayer';
 import { MiniPlayer } from '../../components/MiniPlayer';
 import { useAuth } from '../../context/AuthContext';
-import { useAlbums, useAllSongs, usePlaylists } from '../../lib/hooks/jellyfin';
+import { useAlbums, useAllSongs, usePlaylists, useLibraryRefresh } from '../../lib/hooks/jellyfin';
 import * as DropdownMenu from 'zeego/dropdown-menu';
-import { Button } from 'react-native';
+import * as ContextMenu from 'zeego/context-menu';
 
 // Define interface for JellyfinItem
+
+
+function AlbumItemActionsContextMenu({ children }: { children: React.ReactNode }) {
+  return (
+    <ContextMenu.Root>
+      <ContextMenu.Trigger asChild>{children}</ContextMenu.Trigger>
+      <ContextMenu.Content>
+        <ContextMenu.Group>
+          <ContextMenu.Item key="info">
+            <ContextMenu.ItemTitle>{"View Song Info"}</ContextMenu.ItemTitle>
+            <ContextMenu.ItemIcon ios={{ name: "info.circle" }} />
+          </ContextMenu.Item>
+        </ContextMenu.Group>
+
+        <ContextMenu.Item key="play-next">
+          <ContextMenu.ItemTitle>{"Play Next"}</ContextMenu.ItemTitle>
+          <ContextMenu.ItemIcon
+            ios={{ name: "text.line.first.and.arrowtriangle.forward" }}
+          />
+        </ContextMenu.Item>
+        <ContextMenu.Item key="play-last">
+          <ContextMenu.ItemTitle>{"Play Last"}</ContextMenu.ItemTitle>
+          <ContextMenu.ItemIcon
+            ios={{ name: "text.line.last.and.arrowtriangle.forward" }}
+          />
+        </ContextMenu.Item>
+
+        <ContextMenu.Group>
+          <ContextMenu.Item key="download">
+            <ContextMenu.ItemTitle>{"Download Album"}</ContextMenu.ItemTitle>
+            <ContextMenu.ItemIcon ios={{ name: "arrow.down.circle" }} />
+          </ContextMenu.Item>
+
+          <ContextMenu.Sub>
+            <ContextMenu.SubTrigger key="sub-menu-trigger">
+              <ContextMenu.ItemTitle>{"Add to Playlist"}</ContextMenu.ItemTitle>
+              <ContextMenu.ItemIcon
+                ios={{ name: "rectangle.stack.badge.plus" }}
+              />
+            </ContextMenu.SubTrigger>
+            <ContextMenu.SubContent>
+              <ContextMenu.Item key="sub-menu-item-1">
+                <ContextMenu.ItemTitle>{"Sub Menu Item"}</ContextMenu.ItemTitle>
+              </ContextMenu.Item>
+              <ContextMenu.Item key="sub-menu-item-2">
+                <ContextMenu.ItemTitle>{"Sub Menu Item"}</ContextMenu.ItemTitle>
+              </ContextMenu.Item>
+              <ContextMenu.Item key="sub-menu-item-3">
+                <ContextMenu.ItemTitle>{"Sub Menu Item"}</ContextMenu.ItemTitle>
+              </ContextMenu.Item>
+              <ContextMenu.Item key="sub-menu-item-4">
+                <ContextMenu.ItemTitle>{"Sub Menu Item"}</ContextMenu.ItemTitle>
+              </ContextMenu.Item>
+              <ContextMenu.Item key="sub-menu-item-5">
+                <ContextMenu.ItemTitle>{"Sub Menu Item"}</ContextMenu.ItemTitle>
+              </ContextMenu.Item>
+            </ContextMenu.SubContent>
+          </ContextMenu.Sub>
+        </ContextMenu.Group>
+
+        <ContextMenu.Group>
+          <ContextMenu.Item key="album">
+            <ContextMenu.ItemTitle>{"Go to Album"}</ContextMenu.ItemTitle>
+            <ContextMenu.ItemIcon ios={{ name: "music.note.house" }} />
+          </ContextMenu.Item>
+          <ContextMenu.Item key="artist">
+            <ContextMenu.ItemTitle>{"Go to Artist"}</ContextMenu.ItemTitle>
+            <ContextMenu.ItemIcon ios={{ name: "music.microphone" }} />
+          </ContextMenu.Item>
+        </ContextMenu.Group>
+
+        <ContextMenu.Group>
+          <ContextMenu.Item key="share">
+            <ContextMenu.ItemTitle>{"Share Song"}</ContextMenu.ItemTitle>
+            <ContextMenu.ItemIcon ios={{ name: "square.and.arrow.up" }} />
+          </ContextMenu.Item>
+        </ContextMenu.Group>
+      </ContextMenu.Content>
+    </ContextMenu.Root>
+  );
+}
 interface JellyfinItem {
   Id: string;
   Name: string;
@@ -59,32 +140,32 @@ const AlbumItem = ({ album }: { album: JellyfinItem }) => {
     `${serverUrl}/Items/${album.Id}/Images/Primary?fillHeight=300&fillWidth=300&quality=90` : null;
   
   const navigateToAlbum = () => {
-    router.push(`/album/${album.Id}`);
+    router.push(`/(tabs)/album/${album.Id}`);
   };
   
   return (
     <TouchableOpacity style={styles.albumCard} activeOpacity={0.7} onPress={navigateToAlbum}>
       {imageUrl ? (
         <Image 
-          source={{ 
-            uri: imageUrl,
-            headers: token ? { 'X-Emby-Token': token } : undefined
-          }} 
-          style={styles.albumCardImage} 
-        />
-      ) : (
-        <View style={[styles.albumCardImage, { backgroundColor: colors.cardBackground }]}>
-          <Ionicons name="disc" size={40} color={colors.icon} />
-        </View>
-      )}
-      <View style={styles.albumCardInfo}>
-        <Text style={[styles.albumCardTitle, { color: colors.text }]} numberOfLines={1}>
-          {album.Name}
-        </Text>
-        <Text style={[styles.albumCardArtist, { color: colors.icon }]} numberOfLines={1}>
-          {album.AlbumArtist || (album.Artists && album.Artists.length > 0 ? album.Artists[0] : 'Unknown Artist')}
-        </Text>
+        source={{ 
+          uri: imageUrl,
+          headers: token ? { 'X-Emby-Token': token } : undefined
+        }} 
+        style={styles.albumCardImage} 
+      />
+    ) : (
+      <View style={[styles.albumCardImage, { backgroundColor: colors.cardBackground }]}>
+        <Ionicons name="disc" size={40} color={colors.icon} />
       </View>
+    )}
+    <View style={styles.albumCardInfo}>
+      <Text style={[styles.albumCardTitle, { color: colors.text }]} numberOfLines={1}>
+        {album.Name}
+      </Text>
+      <Text style={[styles.albumCardArtist, { color: colors.icon }]} numberOfLines={1}>
+        {album.AlbumArtist || (album.Artists && album.Artists.length > 0 ? album.Artists[0] : 'Unknown Artist')}
+      </Text>
+    </View>
     </TouchableOpacity>
   );
 };
@@ -148,6 +229,8 @@ export default function LibraryScreen() {
   const [sortedAlbums, setSortedAlbums] = useState<any[]>([]);
   const [sortedPlaylists, setSortedPlaylists] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { refreshLibrary, refreshSongs, refreshAlbums, refreshPlaylists } = useLibraryRefresh();
 
   const { isAuthenticated, serverUrl, username, token, userId } = useAuth();
 
@@ -293,6 +376,30 @@ export default function LibraryScreen() {
     }
   }, [songsResponse, serverUrl, mapJellyfinItemToSong]);
 
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Refresh the data for the current tab
+      switch (activeTab) {
+        case 0: // Songs
+          await refreshSongs();
+          break;
+        case 1: // Albums
+          await refreshAlbums();
+          break;
+        case 2: // Playlists
+          await refreshPlaylists();
+          break;
+        default:
+          await refreshLibrary();
+          break;
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 0: // Songs
@@ -320,6 +427,13 @@ export default function LibraryScreen() {
               key="songs-list"
               data={getFilteredContent(sortedSongs)}
               keyExtractor={(item) => item.Id || item.id}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={colors.tint}
+                />
+              }
               renderItem={({ item }) => (
                 <SongItem 
                   song={item}
@@ -383,6 +497,13 @@ export default function LibraryScreen() {
               key="albums-grid"
               data={getFilteredContent(sortedAlbums)}
               keyExtractor={(item) => item.Id}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={colors.tint}
+                />
+              }
               renderItem={({ item }) => <AlbumItem album={item} />}
               contentContainerStyle={styles.gridContent}
               numColumns={2}
@@ -436,6 +557,13 @@ export default function LibraryScreen() {
               key="playlists-list"
               data={getFilteredContent(sortedPlaylists)}
               keyExtractor={(item) => item.Id}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={colors.tint}
+                />
+              }
               renderItem={({ item }) => <PlaylistItem playlist={item} />}
               contentContainerStyle={styles.listContent}
               ListEmptyComponent={
@@ -507,6 +635,10 @@ export default function LibraryScreen() {
               ))}
             </DropdownMenu.Content>
           </DropdownMenu.Root>
+          
+          <TouchableOpacity style={styles.headerButton} onPress={() => handleRefresh()}>
+            <Ionicons name="refresh-outline" size={24} color={colors.tint} />
+          </TouchableOpacity>
         </View>
       </View>
       

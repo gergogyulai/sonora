@@ -1,5 +1,12 @@
 import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS, AVPlaybackStatus } from 'expo-av';
+import TrackPlayer, { 
+  Event, 
+  State, 
+  useTrackPlayerEvents, 
+  useProgress, 
+  Capability,
+  AppKilledPlaybackBehavior
+} from 'react-native-track-player';
 import { Platform } from 'react-native';
 import { useAuth } from './AuthContext';
 
@@ -50,8 +57,21 @@ const mapJellyfinItemToSong = (item: any, serverUrl: string, token: string = '')
       imageUri: serverUrl ? `${serverUrl}/Items/${item.AlbumId}/Images/Primary?fillHeight=300&fillWidth=300&quality=90` : ''
     },
     duration: item.RunTimeTicks ? Math.floor((item.RunTimeTicks / 10000000)) : 0,
-    uri: `${serverUrl}/Audio/${item.Id}/universal?audioCodec=aac,mp3&api_key=${token}`,
+    uri: `${serverUrl}/Audio/${item.Id}/universal?audioCodec=mp3&maxStreamingBitrate=192000&api_key=${token}`,
     imageUri: item.Id ? `${serverUrl}/Items/${item.Id}/Images/Primary?fillHeight=300&fillWidth=300&quality=90` : ''
+  };
+};
+
+// Convert our Song to TrackPlayer Track format
+const songToTrack = (song: Song) => {
+  return {
+    id: song.id,
+    url: song.uri,
+    title: song.title,
+    artist: song.artist.name,
+    album: song.album.title,
+    artwork: song.imageUri,
+    duration: song.duration,
   };
 };
 
@@ -79,150 +99,178 @@ const MusicPlayerContext = createContext<MusicPlayerContextProps | undefined>(un
 export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { serverUrl, token } = useAuth();
   
-  // Audio playback state
+  // Track player state
   const [currentSong, setCurrentSongData] = useState<Song | null>(null);
   const [playlistSongs, setPlaylistSongs] = useState<Song[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [position, setPosition] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Audio playback references
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const soundObjectLoaded = useRef<boolean>(false);
-  const playbackUpdateInterval = useRef<NodeJS.Timeout | null>(null);
-  const currentSongRef = useRef<Song | null>(null);
+  // Get playback progress directly from TrackPlayer
+  const { position, duration } = useProgress();
   
-  // Set up audio mode once on component mount
+  // Setup TrackPlayer on mount
   useEffect(() => {
-    const setupAudio = async () => {
+    const setupPlayer = async () => {
       try {
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: true,
-          interruptionModeIOS: InterruptionModeIOS.DuckOthers,
-          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
+        // Initialize the player
+        await TrackPlayer.setupPlayer({
+          // Optional options
+          minBuffer: 15,  // seconds
+          maxBuffer: 50,  // seconds
+          backBuffer: 10, // seconds
+          waitForBuffer: true
         });
-        console.log('[MusicPlayer] Audio mode set successfully');
+        
+        // Configure player capabilities
+        await TrackPlayer.updateOptions({
+          android: {
+            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+          },
+          capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious,
+            Capability.SeekTo
+          ],
+          compactCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious
+          ],
+          notificationCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious
+          ],
+          progressUpdateEventInterval: 1,
+        });
+        
+        console.log('[MusicPlayer] TrackPlayer initialized successfully');
       } catch (err) {
-        console.error("[MusicPlayer] Failed to set audio mode:", err);
+        console.error('[MusicPlayer] Failed to set up TrackPlayer:', err);
         setError(`Failed to set up audio: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     };
     
-    setupAudio();
+    setupPlayer();
     
-    // Clean up when the component unmounts
+    // Clean up when component unmounts
     return () => {
-      cleanUpAudio();
+      const teardown = async () => {
+        try {
+          await TrackPlayer.reset();
+        } catch (error) {
+          console.warn('[MusicPlayer] Error during cleanup:', error);
+        }
+      };
+      
+      teardown();
     };
   }, []);
   
-  // Update currentSongRef when currentSong changes
-  useEffect(() => {
-    currentSongRef.current = currentSong;
-  }, [currentSong]);
-  
-  // Handle playback status updates
-  const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-    if (!status.isLoaded) {
-      if (status.error) {
-        console.error(`[MusicPlayer] Playback error: ${status.error}`);
-        setError(`Playback error: ${status.error}`);
-      }
-      return;
-    }
-    
-    setIsPlaying(status.isPlaying);
-    
-    if (!isSliding && status.positionMillis !== undefined) {
-      setPosition(status.positionMillis);
-    }
-    
-    if (status.durationMillis !== undefined && status.durationMillis > 0) {
-      setDuration(status.durationMillis);
-    }
-    
-    if (status.didJustFinish) {
-      console.log('[MusicPlayer] Track finished, playing next song');
-      setTimeout(() => playNextSong(), 500); // Small delay to ensure proper cleanup
-    }
-  }, [isSliding]);
-  
-  // Clean up audio resources
-  const cleanUpAudio = useCallback(async () => {
-    console.log('[MusicPlayer] Cleaning up audio resources');
-    
-    if (playbackUpdateInterval.current) {
-      clearInterval(playbackUpdateInterval.current);
-      playbackUpdateInterval.current = null;
-    }
-    
-    if (soundRef.current) {
-      try {
-        const status = await soundRef.current.getStatusAsync();
-        if (status.isLoaded) {
-          await soundRef.current.stopAsync();
+  // Handle TrackPlayer events
+  useTrackPlayerEvents([
+    Event.PlaybackState,
+    Event.PlaybackError,
+    Event.PlaybackTrackChanged,
+    Event.PlaybackQueueEnded
+  ], async (event) => {
+    switch (event.type) {
+      case Event.PlaybackState:
+        // Update isPlaying state based on player state
+        const playerState = await TrackPlayer.getState();
+        setIsPlaying(playerState === State.Playing);
+        setIsLoading(playerState === State.Buffering || playerState === State.Connecting);
+        break;
+        
+      case Event.PlaybackError:
+        console.error('[MusicPlayer] Playback error:', event.message);
+        setError(`Playback error: ${event.message}`);
+        break;
+        
+      case Event.PlaybackTrackChanged:
+        if (event.nextTrack !== undefined && event.nextTrack !== null) {
+          try {
+            const track = await TrackPlayer.getTrack(event.nextTrack);
+            if (track) {
+              // Find the corresponding song from our playlist
+              const nextSong = playlistSongs.find(song => song.id === track.id);
+              if (nextSong) {
+                setCurrentSongData(nextSong);
+              }
+            }
+          } catch (error) {
+            console.error('[MusicPlayer] Error getting current track:', error);
+          }
         }
-        await soundRef.current.unloadAsync();
-      } catch (error) {
-        console.warn('[MusicPlayer] Error during audio cleanup:', error);
-      } finally {
-        soundRef.current = null;
-        soundObjectLoaded.current = false;
-      }
+        break;
+        
+      case Event.PlaybackQueueEnded:
+        console.log('[MusicPlayer] Playback queue ended');
+        // Queue ended, you could implement repeat behavior here
+        break;
     }
-  }, []);
+  });
   
-  // Load sound with improved error handling and retry logic
-  const loadSound = useCallback(async (song: Song): Promise<boolean> => {
-    console.log('[MusicPlayer] Loading sound:', song.title);
+  // Set the current song
+  const setCurrentSong = useCallback(async (song: Song) => {
+    console.log('[MusicPlayer] Setting current song:', song.title);
     
-    if (!song || !song.uri) {
-      console.error('[MusicPlayer] Invalid song or URI');
-      setError('Cannot play song: Missing audio data');
-      return false;
-    }
-    
+    setCurrentSongData(song);
     setIsLoading(true);
     setError(null);
     
     try {
-      // Clean up any existing audio first
-      await cleanUpAudio();
+      // Convert song to track format
+      const track = songToTrack(song);
       
-      console.log('[MusicPlayer] Creating sound object for URI:', song.uri);
+      // Reset queue and add the track
+      await TrackPlayer.reset();
+      await TrackPlayer.add(track);
       
-      // Create the new sound object
-      const { sound, status } = await Audio.Sound.createAsync(
-        { uri: song.uri },
-        { progressUpdateIntervalMillis: 1000 },
-        onPlaybackStatusUpdate
-      );
-      
-      soundRef.current = sound;
-      
-      if (!status.isLoaded) {
-        throw new Error('Failed to load audio');
-      }
-      
-      soundObjectLoaded.current = true;
-      setDuration(status.durationMillis || 0);
-      console.log('[MusicPlayer] Sound loaded successfully');
-      
-      return true;
+      // Start playback
+      await TrackPlayer.play();
+      setIsPlaying(true);
     } catch (error) {
-      console.error('[MusicPlayer] Error loading sound:', error);
-      setError(`Could not load "${song.title}": ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return false;
+      console.error('[MusicPlayer] Error in setCurrentSong:', error);
+      setError(`Error playing ${song.title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
-  }, [onPlaybackStatusUpdate, cleanUpAudio]);
+  }, []);
+  
+  // Set the current playlist
+  const setCurrentPlaylist = useCallback(async (songs: Song[]) => {
+    console.log('[MusicPlayer] Setting playlist with', songs.length, 'songs');
+    
+    if (songs.length === 0) return;
+    
+    setPlaylistSongs(songs);
+    setIsLoading(true);
+    
+    try {
+      // Convert songs to tracks
+      const tracks = songs.map(songToTrack);
+      
+      // Reset queue and add all tracks
+      await TrackPlayer.reset();
+      await TrackPlayer.add(tracks);
+      
+      // Update current song data
+      setCurrentSongData(songs[0]);
+    } catch (error) {
+      console.error('[MusicPlayer] Error setting playlist:', error);
+      setError(`Error setting playlist: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
   
   // Play the current song
   const playCurrentSong = useCallback(async () => {
@@ -233,59 +281,15 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return Promise.resolve();
     }
     
-    if (!currentSong) {
-      console.log('[MusicPlayer] Cannot play - no current song');
-      return Promise.resolve();
-    }
-    
     try {
-      setIsPlaying(true);
-      
-      if (!soundRef.current || !soundObjectLoaded.current) {
-        console.log('[MusicPlayer] No sound object, loading song first');
-        await loadSound(currentSong);
-      }
-      
-      if (soundRef.current) {
-        console.log('[MusicPlayer] Playing sound');
-        await soundRef.current.playAsync();
-      }
-      
+      await TrackPlayer.play();
       return Promise.resolve();
     } catch (error) {
       console.error('[MusicPlayer] Error playing song:', error);
-      setError(`Error playing ${currentSong.title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setIsPlaying(false);
+      setError(`Error playing: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return Promise.reject(error);
     }
-  }, [isLoading, currentSong, loadSound]);
-  
-  // Set the current song with improved handling
-  const setCurrentSong = useCallback(async (song: Song) => {
-    console.log('[MusicPlayer] Setting current song:', song.title);
-    
-    if (currentSongRef.current?.id === song.id && soundObjectLoaded.current) {
-      console.log('[MusicPlayer] Song already loaded, just playing');
-      setCurrentSongData(song);
-      playCurrentSong();
-      return;
-    }
-    
-    // Set the song data immediately for UI updates
-    setCurrentSongData(song);
-    
-    // Then load and play the song
-    const loaded = await loadSound(song);
-    if (loaded) {
-      playCurrentSong();
-    }
-  }, [loadSound, playCurrentSong]);
-  
-  // Set the current playlist
-  const setCurrentPlaylist = useCallback((songs: Song[]) => {
-    console.log('[MusicPlayer] Setting playlist with', songs.length, 'songs');
-    setPlaylistSongs(songs);
-  }, []);
+  }, [isLoading]);
   
   // Pause the current song
   const pauseCurrentSong = useCallback(async () => {
@@ -296,11 +300,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
     
     try {
-      if (soundRef.current && soundObjectLoaded.current) {
-        await soundRef.current.pauseAsync();
-      }
-      
-      setIsPlaying(false);
+      await TrackPlayer.pause();
       return Promise.resolve();
     } catch (error) {
       console.error('[MusicPlayer] Error pausing song:', error);
@@ -310,54 +310,41 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [isLoading]);
   
   // Get the index of the current song in the playlist
-  const getCurrentSongIndex = useCallback(() => {
+  const getCurrentSongIndex = useCallback(async () => {
     if (!currentSong || playlistSongs.length === 0) return -1;
-    return playlistSongs.findIndex(song => song.id === currentSong.id);
+    
+    try {
+      const currentTrackIndex = await TrackPlayer.getCurrentTrack();
+      return currentTrackIndex !== null ? currentTrackIndex : -1;
+    } catch (error) {
+      console.error('[MusicPlayer] Error getting current track index:', error);
+      return -1;
+    }
   }, [currentSong, playlistSongs]);
   
   // Play the next song in the playlist
-  const playNextSong = useCallback(() => {
+  const playNextSong = useCallback(async () => {
     console.log('[MusicPlayer] Playing next song');
     
     try {
-      const currentIndex = getCurrentSongIndex();
-      
-      if (currentIndex >= 0 && currentIndex < playlistSongs.length - 1) {
-        // Play the next song in the playlist
-        setCurrentSong(playlistSongs[currentIndex + 1]);
-      } else if (playlistSongs.length > 0) {
-        // Loop back to the first song
-        setCurrentSong(playlistSongs[0]);
-      } else {
-        console.log('[MusicPlayer] No songs in playlist to play next');
-      }
+      await TrackPlayer.skipToNext();
     } catch (error) {
       console.error('[MusicPlayer] Error playing next song:', error);
       setError(`Error playing next song: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [getCurrentSongIndex, playlistSongs, setCurrentSong]);
+  }, []);
   
   // Play the previous song in the playlist
-  const playPreviousSong = useCallback(() => {
+  const playPreviousSong = useCallback(async () => {
     console.log('[MusicPlayer] Playing previous song');
     
     try {
-      const currentIndex = getCurrentSongIndex();
-      
-      if (currentIndex > 0) {
-        // Play the previous song
-        setCurrentSong(playlistSongs[currentIndex - 1]);
-      } else if (playlistSongs.length > 0) {
-        // Loop to the last song
-        setCurrentSong(playlistSongs[playlistSongs.length - 1]);
-      } else {
-        console.log('[MusicPlayer] No songs in playlist to play previous');
-      }
+      await TrackPlayer.skipToPrevious();
     } catch (error) {
       console.error('[MusicPlayer] Error playing previous song:', error);
       setError(`Error playing previous song: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [getCurrentSongIndex, playlistSongs, setCurrentSong]);
+  }, []);
   
   // Skip to a specific position
   const skipToPosition = useCallback(async (positionMillis: number) => {
@@ -366,19 +353,12 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (isLoading) return;
     
     try {
-      if (soundRef.current && soundObjectLoaded.current) {
-        await soundRef.current.setPositionAsync(positionMillis);
-        if (!isSliding) {
-          setPosition(positionMillis);
-        }
-      } else {
-        console.log('[MusicPlayer] Cannot seek - sound not loaded');
-      }
+      await TrackPlayer.seekTo(positionMillis / 1000); // TrackPlayer uses seconds, not milliseconds
     } catch (error) {
       console.error('[MusicPlayer] Error skipping to position:', error);
       setError(`Error seeking: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [isLoading, isSliding]);
+  }, [isLoading]);
   
   // Clear any errors
   const clearError = useCallback(() => {
@@ -390,8 +370,8 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const value = {
     currentSong,
     isPlaying,
-    duration,
-    position,
+    duration: duration * 1000, // Convert to milliseconds to maintain compatibility
+    position: position * 1000, // Convert to milliseconds to maintain compatibility
     isLoading,
     error,
     setCurrentSong,

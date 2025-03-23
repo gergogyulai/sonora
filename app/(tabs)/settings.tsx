@@ -1,16 +1,25 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Platform } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
+import { useMusicPlayer } from '../../context/MusicPlayerContext';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { logout, username, serverUrl } = useAuth();
   const router = useRouter();
+  const [highQualityStreaming, setHighQualityStreaming] = useState(true);
+  const [wifiOnlyDownloads, setWifiOnlyDownloads] = useState(true);
+  const [crossfadeEnabled, setCrossfadeEnabled] = useState(false);
+  const [dataSaver, setDataSaver] = useState(false);
+  const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
+  const [equalizer, setEqualizer] = useState(false);
+  const [sleepTimer, setSleepTimer] = useState(false);
+  const [cacheSize, setCacheSize] = useState("1.2 GB");
 
   const handleLogout = () => {
     Alert.alert(
@@ -33,9 +42,40 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleClearCache = () => {
+    Alert.alert(
+      'Clear Cache',
+      'This will remove all cached music and artwork. Are you sure?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: () => {
+            // Implement cache clearing logic
+            setCacheSize("0 MB");
+            Alert.alert('Cache Cleared', 'Your cache has been cleared successfully.');
+          },
+        },
+      ],
+    );
+  };
+
+  const navigateToScreen = (screen: string) => {
+    // This would navigate to the appropriate screen when implemented
+    Alert.alert('Coming Soon', `${screen} settings will be available in a future update.`);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? colors.background : '#fff' }]}>
-      <Stack.Screen options={{ title: 'Settings', headerStyle: { backgroundColor: colorScheme === 'dark' ? colors.background : '#fff' }, headerTintColor: colors.text }} />
+      <Stack.Screen options={{ 
+        title: 'Settings', 
+        headerStyle: { backgroundColor: colorScheme === 'dark' ? colors.background : '#fff' }, 
+        headerTintColor: colors.text 
+      }} />
       
       <ScrollView style={styles.scrollView}>
         {/* Account Section */}
@@ -64,6 +104,21 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingValue, { color: colors.icon }]}>{serverUrl}</Text>
               </View>
             </View>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => navigateToScreen('Profile')}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="create-outline" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Profile</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+            </TouchableOpacity>
           </View>
           
           <TouchableOpacity
@@ -75,9 +130,9 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
         
-        {/* App Settings Section */}
+        {/* Playback Settings Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>App Settings</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Playback</Text>
           
           <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f8f8f8' }]}>
             <View style={styles.settingRow}>
@@ -89,7 +144,8 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingDescription, { color: colors.icon }]}>Stream music in the highest quality</Text>
               </View>
               <Switch
-                value={true}
+                value={highQualityStreaming}
+                onValueChange={setHighQualityStreaming}
                 trackColor={{ false: '#767577', true: colors.tint }}
                 thumbColor={'#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
@@ -100,6 +156,71 @@ export default function SettingsScreen() {
             
             <View style={styles.settingRow}>
               <View style={styles.iconContainer}>
+                <Ionicons name="swap-horizontal" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Crossfade</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Smooth transition between songs</Text>
+              </View>
+              <Switch
+                value={crossfadeEnabled}
+                onValueChange={setCrossfadeEnabled}
+                trackColor={{ false: '#767577', true: colors.tint }}
+                thumbColor={'#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+              />
+            </View>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => navigateToScreen('Equalizer')}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="options" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Equalizer</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Customize audio settings</Text>
+              </View>
+              <Switch
+                value={equalizer}
+                onValueChange={setEqualizer}
+                trackColor={{ false: '#767577', true: colors.tint }}
+                thumbColor={'#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+              />
+            </TouchableOpacity>
+            
+            <View style={styles.divider} />
+            
+            <View style={styles.settingRow}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="play-circle" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Auto-play</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Continue playing similar tracks</Text>
+              </View>
+              <Switch
+                value={autoPlayEnabled}
+                onValueChange={setAutoPlayEnabled}
+                trackColor={{ false: '#767577', true: colors.tint }}
+                thumbColor={'#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+              />
+            </View>
+          </View>
+        </View>
+        
+        {/* Downloads and Storage Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Downloads & Storage</Text>
+          
+          <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f8f8f8' }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.iconContainer}>
                 <Ionicons name="download" size={22} color={colors.tint} />
               </View>
               <View style={styles.settingContent}>
@@ -107,12 +228,122 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingDescription, { color: colors.icon }]}>Downloads will only use Wi-Fi</Text>
               </View>
               <Switch
-                value={true}
+                value={wifiOnlyDownloads}
+                onValueChange={setWifiOnlyDownloads}
                 trackColor={{ false: '#767577', true: colors.tint }}
                 thumbColor={'#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
               />
             </View>
+            
+            <View style={styles.divider} />
+            
+            <View style={styles.settingRow}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="save" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Data Saver</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Reduce data usage when streaming</Text>
+              </View>
+              <Switch
+                value={dataSaver}
+                onValueChange={setDataSaver}
+                trackColor={{ false: '#767577', true: colors.tint }}
+                thumbColor={'#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+              />
+            </View>
+            
+            <View style={styles.divider} />
+            
+            <View style={styles.settingRow}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="folder" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Cache Size</Text>
+                <Text style={[styles.settingValue, { color: colors.icon }]}>{cacheSize}</Text>
+              </View>
+              <TouchableOpacity onPress={handleClearCache}>
+                <Text style={{ color: colors.tint, fontWeight: '500' }}>Clear</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => navigateToScreen('Download Quality')}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="cloud-download" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Download Quality</Text>
+                <Text style={[styles.settingValue, { color: colors.icon }]}>High</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        {/* Additional Features Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Features</Text>
+          
+          <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f8f8f8' }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="time" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Sleep Timer</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Automatically stop playing after a period</Text>
+              </View>
+              <Switch
+                value={sleepTimer}
+                onValueChange={setSleepTimer}
+                trackColor={{ false: '#767577', true: colors.tint }}
+                thumbColor={'#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+              />
+            </View>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => navigateToScreen('Connected Devices')}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="bluetooth" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>Connected Devices</Text>
+                <Text style={[styles.settingDescription, { color: colors.icon }]}>Manage connected audio devices</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+            </TouchableOpacity>
+            
+            {Platform.OS === 'ios' && (
+              <>
+                <View style={styles.divider} />
+                <TouchableOpacity 
+                  style={styles.settingRow}
+                  onPress={() => navigateToScreen('Apple Music')}
+                >
+                  <View style={styles.iconContainer}>
+                    <Ionicons name="musical-note" size={22} color={colors.tint} />
+                  </View>
+                  <View style={styles.settingContent}>
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>Apple Music Integration</Text>
+                    <Text style={[styles.settingDescription, { color: colors.icon }]}>Connect with Apple Music</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
         
@@ -130,6 +361,21 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingValue, { color: colors.icon }]}>1.0.0</Text>
               </View>
             </View>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => Alert.alert('Sonora Music', 'Thank you for using Sonora Music, a beautiful client for Jellyfin.')}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="heart" size={22} color={colors.tint} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: colors.text }]}>About Sonora</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.icon} />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

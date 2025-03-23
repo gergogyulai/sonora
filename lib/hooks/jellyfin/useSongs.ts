@@ -19,10 +19,10 @@ export function useSongs(
       return await itemsApi.getItems({
         userId,
         recursive: true,
-        includeItemTypes: ['Audio'],
+        includeItemTypes: ["Audio"],
         parentId: albumId,
-        sortBy: ['SortName'],
-        sortOrder: ['Ascending'],
+        sortBy: ["SortName"],
+        sortOrder: ["Ascending"],
       });
     },
     enabled: !!jellyfinApi,

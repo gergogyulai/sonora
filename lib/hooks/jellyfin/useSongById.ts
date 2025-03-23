@@ -1,14 +1,15 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { getUserLibraryApi } from '@jellyfin/sdk/lib/utils/api';
+import { BaseItemDto } from '@jellyfin/sdk/lib/generated-client';
 import { useJellyfinApi, ApiResponse } from './core';
 
 export function useSongById(
   songId: string, 
-  options?: Omit<UseQueryOptions<ApiResponse<any>, Error, ApiResponse<any>>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ApiResponse<BaseItemDto>, Error, ApiResponse<BaseItemDto>>, 'queryKey' | 'queryFn'>
 ) {
   const jellyfinApi = useJellyfinApi();
   
-  return useQuery<ApiResponse<any>, Error, ApiResponse<any>>({
+  return useQuery<ApiResponse<BaseItemDto>, Error, ApiResponse<BaseItemDto>>({
     queryKey: ['songs', songId],
     queryFn: async () => {
       if (!jellyfinApi) throw new Error('Not authenticated');

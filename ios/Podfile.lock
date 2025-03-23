@@ -1446,6 +1446,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-sfsymbols (1.2.2):
+    - React
   - react-native-slider (4.5.6):
     - DoubleConversion
     - glog
@@ -2042,6 +2044,7 @@ DEPENDENCIES:
   - react-native-ios-utilities (from `../node_modules/react-native-ios-utilities`)
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-sfsymbols (from `../node_modules/react-native-sfsymbols`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-track-player (from `../node_modules/react-native-track-player`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -2208,6 +2211,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-menu/menu"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-sfsymbols:
+    :path: "../node_modules/react-native-sfsymbols"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-track-player:
@@ -2346,6 +2351,7 @@ SPEC CHECKSUMS:
   react-native-ios-utilities: 417649ec9578d57e01203c4cffc1f6d918d3aa1f
   react-native-menu: fea4b32fe2482b19ebe963c02d8aa8c4513b44ce
   react-native-safe-area-context: 0f16e24dc808e9f0ced17f2bdcec692b2376fb68
+  react-native-sfsymbols: 3309f24c98d32705568c84b714268f3ec62017c7
   react-native-slider: 8ac9b674825295690947a5ccab537dd3800b1a5f
   react-native-track-player: 6dc2e2633265704b8ab6d8124b80239d4ed1f911
   react-native-webview: 2ae666ce72cfd3c38d8750c2009f5caa621d709f

@@ -9,6 +9,7 @@ interface SongItemProps {
   song: Song;
   showArtwork?: boolean;
   showAlbumTitle?: boolean;
+  showArtist?: boolean;
   onOptionsPress?: () => void;
   onPress?: () => void;
 }
@@ -17,6 +18,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   song,
   showArtwork = true,
   showAlbumTitle = true,
+  showArtist = true,
   onOptionsPress,
   onPress,
 }) => {
@@ -99,7 +101,7 @@ export const SongItem: React.FC<SongItemProps> = ({
             ]} 
             numberOfLines={1}
           >
-            {song.artist?.name || 'Unknown Artist'}
+            {showArtist && (song.artist?.name || 'Unknown Artist')}
             {showAlbumTitle && song.album && ` • ${song.album.title}`}
           </Text>
         </View>

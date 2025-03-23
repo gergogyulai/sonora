@@ -25,6 +25,7 @@ export { useGenreById } from './useGenreById';
 
 // Recent items
 export { useRecentlyAddedItems } from './useRecentlyAddedItems';
+export { useRecentlyPlayed } from './useRecentlyPlayed';
 
 // Media utilities
 export { useImageUrl } from './useImageUrl';
@@ -33,4 +34,7 @@ export { useImageUrl } from './useImageUrl';
 export { useAudioStreamUrl } from './useAudioStreamUrl';
 export { useAudioPlayback } from './useAudioPlayback';
 export { usePlaybackQueue } from './usePlaybackQueue';
-export { usePlaybackReporting } from './usePlaybackReporting'; 
+export { usePlaybackReporting } from './usePlaybackReporting';
+
+// New useLibraryRefresh hook
+export * from './useLibraryRefresh'; 
