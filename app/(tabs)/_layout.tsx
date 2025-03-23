@@ -30,11 +30,6 @@ export default function TabLayout() {
           },
           default: {},
         }),
-        tabBarShowLabel: true,
-        // tabBarStyle: {
-        //   backgroundColor: isIOS ? 'transparent' : (colorScheme === "dark" ? colors.background : "#fff"),
-        //   borderTopColor: "rgba(0, 0, 0, 0.1)",
-        // },
       }}
     >
       <Tabs.Screen
