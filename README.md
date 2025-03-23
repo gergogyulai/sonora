@@ -71,4 +71,4 @@ Before using Sonora, ensure you have a Jellyfin server set up. You can configure
 Contributions are welcome! Feel free to open issues and pull requests.
 
 ## License
-MIT License. See `LICENSE` for details.
+MIT License. See [`LICENSE`](LICENSE) for details.
