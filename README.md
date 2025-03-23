@@ -57,14 +57,15 @@ Since Sonora uses native modules, **Expo Go will not work** for development. Ins
    - For iOS, open the project in Xcode and run it on a simulator.
    - For Android, use an emulator from Android Studio or connect a physical device via USB.
 
-## ⚙️ Configuration
+## Configuration
 Before using Sonora, ensure you have a Jellyfin server set up. You can configure your server details inside the app settings.
 
-## 🛠 Technologies Used
-- React Native
-- Expo
-- TypeScript
-- Jellyfin API
+## The stack
+- [React Native](https://reactnative.dev/)
+- [Expo](https://expo.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Jellyfin API SDK](https://github.com/jellyfin/jellyfin-sdk-typescript)
+- [Tanstack Query](https://tanstack.com/query/latest)
 
 ## Contributing
 Contributions are welcome! Feel free to open issues and pull requests.
