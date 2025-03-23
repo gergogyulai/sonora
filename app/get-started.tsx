@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity, ColorSchemeName } from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity, ColorSchemeName, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
+import { SFSymbol } from "react-native-sfsymbols";
 
 const { width, height } = Dimensions.get('window');
 
@@ -74,7 +75,10 @@ export default function GetStartedScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Get Started</Text>
-          <Ionicons name="arrow-forward" size={20} color="#fff" />
+          {Platform.select({
+            ios: <SFSymbol name="arrow.forward" size={20} color="#fff" style={{ marginLeft: 10 }}/>,
+            default: <Ionicons name="arrow-forward" size={20} color="#fff" style={{ marginLeft: 10 }}/>,
+          })}
         </TouchableOpacity>
       </View>
     </View>

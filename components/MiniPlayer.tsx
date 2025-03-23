@@ -8,11 +8,14 @@ import {
   ActivityIndicator,
   GestureResponderEvent
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useMusicPlayer } from '../context/MusicPlayerContext';
 import { formatTime } from '../utils/timeUtils';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { BlurView } from 'expo-blur';
+import { SFSymbol } from "react-native-sfsymbols";
+
 
 interface MiniPlayerProps {
   onPress: () => void;
@@ -58,13 +61,19 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
 
   return (
     <TouchableOpacity
-      style={[styles.container, { backgroundColor: colors.playerBackground }]}
+      
       onPress={onPress}
       activeOpacity={0.9}
     >
-      <View style={styles.content}>
-        <View style={styles.artworkContainer}>
-          <Image
+      <BlurView
+        intensity={100}
+        // tint={colorScheme === 'dark' ? 'dark' : 'light'}
+        tint="systemChromeMaterial"
+        style={[styles.container, { backgroundColor: "rgba(9, 9, 9, 0.4)" }]}
+      >
+        <View style={styles.content}>
+          <View style={styles.artworkContainer}>
+            <Image
             source={{ uri: currentSong.imageUri }}
             style={styles.artwork}
           />
@@ -102,11 +111,10 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
             style={[styles.button, isLoading && styles.disabledButton]}
             disabled={isLoading}
           >
-            <Ionicons
-              name={isPlaying ? 'pause' : 'play'}
-              size={28}
-              color={isLoading ? colors.playerText + '80' : colors.playerText}
-            />
+            {Platform.select({
+              ios: <SFSymbol name={isPlaying ? 'pause.fill' : 'play.fill'} size={24} color={colors.playerText} />,
+              default: <MaterialIcons name={isPlaying ? 'play-arrow' : 'pause'} size={24} color={colors.playerText} />,
+            })}
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -114,31 +122,14 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
             style={[styles.button, isLoading && styles.disabledButton]}
             disabled={isLoading}
           >
-            <Ionicons
-              name="play-skip-forward"
-              size={28}
-              color={isLoading ? colors.playerText + '80' : colors.playerText}
-            />
+            {Platform.select({
+              ios: <SFSymbol name="forward.fill" size={24} color={colors.playerText} />,
+              default: <MaterialIcons name="play-arrow" size={24} color={colors.playerText} />,
+            })}
           </TouchableOpacity>
         </View>
       </View>
-      
-      <View 
-        style={[
-          styles.progressBar, 
-          { backgroundColor: colors.trackBackground }
-        ]}
-      >
-        <View 
-          style={[
-            styles.progress, 
-            { 
-              backgroundColor: colors.trackProgress,
-              width: `${error ? 100 : 0}%` // When there's an error, show full red bar
-            }
-          ]} 
-        />
-      </View>
+    </BlurView>
     </TouchableOpacity>
   );
 };
@@ -146,32 +137,27 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 56,
     left: 0,
     right: 0,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderRadius: 16,
+    borderCurve: "circular",
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.84,
     elevation: 5,
     zIndex: 10,
+    marginHorizontal: 12,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 8,
+    paddingHorizontal: 8,
   },
   artworkContainer: {
     position: 'relative',
-    width: 48,
-    height: 48,
-    borderRadius: 4,
+    width: 42,
+    height: 42,
+    borderRadius: 8,
     overflow: 'hidden',
     marginRight: 12,
   },
@@ -193,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 2,
   },
@@ -206,11 +192,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   controls: {
+    gap: 2,
     flexDirection: 'row',
     alignItems: 'center',
   },
   button: {
-    padding: 8,
+    padding: 20,
     marginLeft: 8,
   },
   disabledButton: {

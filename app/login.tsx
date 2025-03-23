@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
-
+import { SFSymbol } from "react-native-sfsymbols";
 export default function LoginScreen() {
   const [serverUrl, setServerUrl] = useState('http://192.168.1.54:30013');
   const [username, setUsername] = useState('testuser');
@@ -90,7 +90,10 @@ export default function LoginScreen() {
               styles.inputWrapper, 
               { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f5f5f5' }
             ]}>
-              <Ionicons name="globe-outline" size={22} color={colors.icon} style={styles.inputIcon} />
+              {Platform.select({
+                ios: <SFSymbol name="globe" size={20} color={colors.icon} style={styles.inputIcon} />,
+                default: <Ionicons name="globe-outline" size={20} color={colors.icon} style={styles.inputIcon} />,
+              })}
               <TextInput
                 placeholder="Server URL (e.g. https://jellyfin.example.com)"
                 placeholderTextColor={colors.tabIconDefault}
@@ -108,7 +111,10 @@ export default function LoginScreen() {
               styles.inputWrapper, 
               { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f5f5f5' }
             ]}>
-              <Ionicons name="person-outline" size={22} color={colors.icon} style={styles.inputIcon} />
+              {Platform.select({
+                ios: <SFSymbol name="person" size={20} color={colors.icon} style={styles.inputIcon} />,
+                default: <Ionicons name="person-outline" size={20} color={colors.icon} style={styles.inputIcon} />,
+              })}
               <TextInput
                 placeholder="Username"
                 placeholderTextColor={colors.tabIconDefault}
@@ -125,7 +131,10 @@ export default function LoginScreen() {
               styles.inputWrapper, 
               { backgroundColor: colorScheme === 'dark' ? colors.cardBackground : '#f5f5f5' }
             ]}>
-              <Ionicons name="lock-closed-outline" size={22} color={colors.icon} style={styles.inputIcon} />
+              {Platform.select({
+                ios: <SFSymbol name="lock" size={20} color={colors.icon} style={styles.inputIcon} />,
+                default: <Ionicons name="lock-closed-outline" size={20} color={colors.icon} style={styles.inputIcon} />,
+              })}
               <TextInput
                 placeholder="Password"
                 placeholderTextColor={colors.tabIconDefault}
@@ -204,7 +213,8 @@ const styles = StyleSheet.create({
     height: 56,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 20,
+    marginLeft: 10,
   },
   input: {
     flex: 1,

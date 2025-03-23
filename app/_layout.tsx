@@ -1,14 +1,14 @@
 import React from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { View, ActivityIndicator } from 'react-native';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@/lib/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/Colors';
 import { QueryProvider } from '../lib/queryClient';
@@ -21,7 +21,15 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, isFirstLaunch } = useAuth();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-
+  const router = useRouter();
+  
+  // Redirect unauthenticated users to get-started
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/get-started');
+    }
+  }, [isLoading, isAuthenticated, router]);
+  
   // Show loading screen while checking auth state
   if (isLoading) {
     return (

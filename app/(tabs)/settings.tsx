@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Platform, Linking } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
@@ -104,21 +104,6 @@ export default function SettingsScreen() {
                 <Text style={[styles.settingValue, { color: colors.icon }]}>{serverUrl}</Text>
               </View>
             </View>
-            
-            <View style={styles.divider} />
-            
-            <TouchableOpacity 
-              style={styles.settingRow}
-              onPress={() => navigateToScreen('Profile')}
-            >
-              <View style={styles.iconContainer}>
-                <Ionicons name="create-outline" size={22} color={colors.tint} />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>Edit Profile</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.icon} />
-            </TouchableOpacity>
           </View>
           
           <TouchableOpacity
@@ -169,48 +154,7 @@ export default function SettingsScreen() {
                 thumbColor={'#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
               />
-            </View>
-            
-            <View style={styles.divider} />
-            
-            <TouchableOpacity 
-              style={styles.settingRow}
-              onPress={() => navigateToScreen('Equalizer')}
-            >
-              <View style={styles.iconContainer}>
-                <Ionicons name="options" size={22} color={colors.tint} />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>Equalizer</Text>
-                <Text style={[styles.settingDescription, { color: colors.icon }]}>Customize audio settings</Text>
-              </View>
-              <Switch
-                value={equalizer}
-                onValueChange={setEqualizer}
-                trackColor={{ false: '#767577', true: colors.tint }}
-                thumbColor={'#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
-              />
-            </TouchableOpacity>
-            
-            <View style={styles.divider} />
-            
-            <View style={styles.settingRow}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="play-circle" size={22} color={colors.tint} />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text }]}>Auto-play</Text>
-                <Text style={[styles.settingDescription, { color: colors.icon }]}>Continue playing similar tracks</Text>
-              </View>
-              <Switch
-                value={autoPlayEnabled}
-                onValueChange={setAutoPlayEnabled}
-                trackColor={{ false: '#767577', true: colors.tint }}
-                thumbColor={'#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
-              />
-            </View>
+            </View>            
           </View>
         </View>
         
@@ -366,7 +310,9 @@ export default function SettingsScreen() {
             
             <TouchableOpacity 
               style={styles.settingRow}
-              onPress={() => Alert.alert('Sonora Music', 'Thank you for using Sonora Music, a beautiful client for Jellyfin.')}
+              onPress={() => Alert.alert('Sonora', 'Thank you for using Sonora, the beautiful Jellyfin client.', [{ text: 'GitHub', onPress: () => {
+                Linking.openURL('https://github.com/gergogyulai/sonora');
+              } }, { text: 'Close', style: 'cancel' }])}
             >
               <View style={styles.iconContainer}>
                 <Ionicons name="heart" size={22} color={colors.tint} />
