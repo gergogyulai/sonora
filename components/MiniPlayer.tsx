@@ -61,9 +61,8 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
 
   return (
     <TouchableOpacity
-      
       onPress={onPress}
-      activeOpacity={0.9}
+      activeOpacity={1}
     >
       <BlurView
         intensity={100}
