@@ -4,18 +4,19 @@
 Sleek and modern music streaming app, powered by Jellyfin, built with Expo and React Native.
 
 ## About Sonora
-Sonora is a new project aimed at delivering a high-quality, aesthetically pleasing selfhosted music streaming experience. The goal is to take inspiration from Apple Music’s design—keeping the good parts and reinventing the bad ones—to create a seamless and beautiful user interface. Built with React Native and Expo, Sonora will allow users to stream their personal music library from a Jellyfin server.
+Sonora is a project aimed at delivering a high-quality selfhosted music streaming experience. The goal is to take inspiration from Apple Music’s design—keeping the good parts and rethinking the bad ones—to create a seamless and beautiful user interface. Built with React Native and Expo, Sonora will allow users to stream their personal music library from a Jellyfin server.
 
 As this is an early-stage project, the codebase is subject to frequent changes and improvements.
 
 ## Features (Planned & In Progress)
-- 🎵 Stream music from your Jellyfin server
-- 🎨 Elegant and modern UI inspired by Apple Music
-- 📱 Cross-platform support with React Native & Expo
-- 🔍 Smart search and dynamic filtering
-- 📂 Intuitive and organized music library
-- 🌙 Light & dark mode support
-- 📡 Offline playback (planned)
+- Stream music from your Jellyfin server
+- Elegant and modern UI inspired by Apple Music
+- Cross-platform support with React Native & Expo
+- Smart search and dynamic filtering
+- Intuitive and organized music library
+- Light & dark mode support
+- Offline playback (planned)
+- Gapless playback (planned)
 
 ## Development
 
