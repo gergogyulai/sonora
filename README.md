@@ -13,7 +13,6 @@ As this is an early-stage project, the codebase is subject to frequent changes a
 - Elegant and modern UI inspired by Apple Music
 - Cross-platform support with React Native & Expo
 - Smart search and dynamic filtering
-- Intuitive and organized music library
 - Light & dark mode support
 - Offline playback (planned)
 - Gapless playback (planned)
